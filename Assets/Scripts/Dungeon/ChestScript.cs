@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,7 +13,8 @@ namespace TableDungeon.Dungeon
         
         private Collider2D _collider;
         private SpriteRenderer _renderer;
-        private Item _item;
+        [CanBeNull] private Item _item;
+        private GameManager _manager;
         
         public Collider2D Player { get; set; }
 
@@ -26,12 +28,13 @@ namespace TableDungeon.Dungeon
 
         private void Start()
         {
-            var manager = FindObjectOfType<GameManager>();
-            manager.Controls.Dungeon.Accept.performed += OnAcceptPerformed;
+            _manager = FindObjectOfType<GameManager>();
+            _manager.Controls.Dungeon.Accept.performed += OnAcceptPerformed;
         }
 
         private void OnAcceptPerformed(InputAction.CallbackContext ctx)
         {
+            if (_item == null || _item.looted) return;
             if (!_collider.IsTouching(Player)) return;
             
             OnPlayerCollected?.Invoke(_item);
@@ -39,7 +42,7 @@ namespace TableDungeon.Dungeon
             _renderer.sprite = opened;
         }
 
-        public void SetItem(Item item)
+        public void SetItem([CanBeNull] Item item)
         {
             gameObject.SetActive(item != null);
             _renderer.sprite = item != null && item.looted ? opened : closed;

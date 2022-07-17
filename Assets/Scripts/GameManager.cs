@@ -7,24 +7,53 @@ namespace TableDungeon
     {
         [SerializeField] private Camera tableCamera;
         [SerializeField] private Camera dungeonCamera;
+        [Space]
+        [SerializeField] private float moveDuration = 60;
         public GameState State { get; private set; }
+        public bool Player1 { get; private set; }
         public Controls Controls { get; private set; }
 
         public Camera TableCamera => tableCamera;
 
+        public event Action<GameState, bool, bool> OnStateChanged;
+
+        private float _timer = 0;
+
         private void Awake()
         {
             Controls = new Controls();
-            SetGameState(GameState.Table);
+            SetGameState(GameState.Table, true);
 
             // Only for debug purposes! Remove ASAP!!
-            Controls.DEBUG.ToggleView.performed += _ => SetGameState((GameState) (((int) State + 1) % 2));
+            Controls.DEBUG.ToggleView.performed += _ => SetGameState((GameState) (((int) State + 1) % 2), Player1);
+            Controls.DEBUG.EndMove.performed += _ =>
+            {
+                SetGameState(GameState.Table, !Player1);
+                Debug.Log("Move ended!");
+            };
         }
 
-        public void SetGameState(GameState value)
+        private void Update()
         {
-            State = value;
+            if (State == GameState.Dungeon)
+            {
+                _timer += Time.deltaTime;
+                if (_timer > moveDuration)
+                {
+                    SetGameState(GameState.Table, !Player1);
+                    Debug.Log("Move ended!");
+                }
+            }
+        }
+
+        public void SetGameState(GameState value, bool player1)
+        {
+            var changed = player1 != Player1;
+            if (changed) _timer = 0;
             
+            State = value;
+            Player1 = player1;
+
             Controls.Disable();
             tableCamera.enabled = false;
             dungeonCamera.enabled = false;
@@ -45,6 +74,8 @@ namespace TableDungeon
             
             // Only for debug purposes! Remove ASAP!!
             Controls.DEBUG.Enable();
+            
+            OnStateChanged?.Invoke(value, player1, changed);
         }
     }
 

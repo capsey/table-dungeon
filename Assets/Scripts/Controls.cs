@@ -292,6 +292,15 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""EndMove"",
+                    ""type"": ""Button"",
+                    ""id"": ""419512ba-be76-47e9-9d9d-10d40005ff3e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -303,6 +312,17 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleView"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5fc2c12d-b591-4677-baf1-96f1b58941e2"",
+                    ""path"": ""<Keyboard>/m"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""EndMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -324,6 +344,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         // DEBUG
         m_DEBUG = asset.FindActionMap("DEBUG", throwIfNotFound: true);
         m_DEBUG_ToggleView = m_DEBUG.FindAction("ToggleView", throwIfNotFound: true);
+        m_DEBUG_EndMove = m_DEBUG.FindAction("EndMove", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -482,11 +503,13 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     private readonly InputActionMap m_DEBUG;
     private IDEBUGActions m_DEBUGActionsCallbackInterface;
     private readonly InputAction m_DEBUG_ToggleView;
+    private readonly InputAction m_DEBUG_EndMove;
     public struct DEBUGActions
     {
         private @Controls m_Wrapper;
         public DEBUGActions(@Controls wrapper) { m_Wrapper = wrapper; }
         public InputAction @ToggleView => m_Wrapper.m_DEBUG_ToggleView;
+        public InputAction @EndMove => m_Wrapper.m_DEBUG_EndMove;
         public InputActionMap Get() { return m_Wrapper.m_DEBUG; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -499,6 +522,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @ToggleView.started -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
                 @ToggleView.performed -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
                 @ToggleView.canceled -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
+                @EndMove.started -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
+                @EndMove.performed -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
+                @EndMove.canceled -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
             }
             m_Wrapper.m_DEBUGActionsCallbackInterface = instance;
             if (instance != null)
@@ -506,6 +532,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @ToggleView.started += instance.OnToggleView;
                 @ToggleView.performed += instance.OnToggleView;
                 @ToggleView.canceled += instance.OnToggleView;
+                @EndMove.started += instance.OnEndMove;
+                @EndMove.performed += instance.OnEndMove;
+                @EndMove.canceled += instance.OnEndMove;
             }
         }
     }
@@ -525,5 +554,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     public interface IDEBUGActions
     {
         void OnToggleView(InputAction.CallbackContext context);
+        void OnEndMove(InputAction.CallbackContext context);
     }
 }

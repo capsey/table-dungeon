@@ -10,6 +10,7 @@ namespace TableDungeon.Player
     
         private Rigidbody2D _rigidbody;
         private Vector2 _targetVelocity;
+        private GameManager _manager;
 
         private void Awake()
         {
@@ -18,9 +19,15 @@ namespace TableDungeon.Player
 
         private void Start()
         {
-            var manager = FindObjectOfType<GameManager>();
-            manager.Controls.Dungeon.Movement.performed += OnInputMovement;
-            manager.Controls.Dungeon.Movement.canceled += OnInputMovement;
+            _manager = FindObjectOfType<GameManager>();
+            _manager.Controls.Dungeon.Movement.performed += OnInputMovement;
+            _manager.Controls.Dungeon.Movement.canceled += OnInputMovement;
+            _manager.OnStateChanged += (s, p, changed) =>
+            {
+                if (!changed) return;
+                transform.localPosition = Vector3.zero;
+                _rigidbody.velocity = Vector2.zero;
+            };
         }
 
         private void OnInputMovement(InputAction.CallbackContext ctx)

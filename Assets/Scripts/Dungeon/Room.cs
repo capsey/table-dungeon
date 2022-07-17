@@ -7,7 +7,8 @@ namespace TableDungeon.Dungeon
         public readonly DirectionMap<Room> doors = new DirectionMap<Room>();
         public Item[] chests = new Item[4];
         public Item.Type? trap = null;
-        public State state = State.Unreachable;
+        public State state1 = State.Unreachable;
+        public State state2 = State.Unreachable;
         
         private readonly int _seed;
 
