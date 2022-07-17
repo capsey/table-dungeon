@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TableDungeon.Player;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace TableDungeon.Dungeon
     {
         public DirectionMap<Door> doors;
         public ChestScript[] chests;
+        public Decoration[] decorations;
         [Space]
         public PlayerMovement player;
 
@@ -26,7 +28,7 @@ namespace TableDungeon.Dungeon
             foreach (var chest in chests)
             {
                 chest.Player = playerCollider;
-                chest.onPlayerCollected += OnPlayerCollected;
+                chest.OnPlayerCollected += OnPlayerCollected;
             }
         }
 
@@ -43,7 +45,11 @@ namespace TableDungeon.Dungeon
             for (var i = 0; i < chests.Length; i++)
             {
                 chests[i].SetItem(value.chests[i]);
-                chests[i].RandomizePosition(random);
+            }
+            
+            foreach (var decoration in decorations)
+            {
+                decoration.Randomize(random, 0.25F);
             }
         }
 

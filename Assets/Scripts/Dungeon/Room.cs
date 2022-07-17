@@ -4,16 +4,18 @@ namespace TableDungeon.Dungeon
 {
     public class Room
     {
-        public readonly int seed;
         public readonly DirectionMap<Room> doors = new DirectionMap<Room>();
         public Item[] chests = new Item[4];
+        public Item.Type? trap = null;
         public State state = State.Unreachable;
+        
+        private readonly int _seed;
 
-        public Random Random => new Random(seed);
+        public Random Random => new Random(_seed);
         
         public Room(int seed)
         {
-            this.seed = seed;
+            _seed = seed;
         }
 
         public enum State

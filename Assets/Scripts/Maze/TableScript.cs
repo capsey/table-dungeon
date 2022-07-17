@@ -20,9 +20,9 @@ namespace TableDungeon.Maze
         public Texture2D visitedTileTexture;
         
         [Header("Generation Settings")]
-        public float horizontalChance = 0.5F;
-        public float verticalChance = 0.5F;
-        public float lootChance = 0.1F;
+        [Range(0, 1)] public float horizontalChance = 0.5F;
+        [Range(0, 1)] public float verticalChance = 0.5F;
+        [Range(0, 1)] public float lootChance = 0.1F;
 
         [Header("UI Settings")]
         public Transform zonePreview;
@@ -30,8 +30,9 @@ namespace TableDungeon.Maze
         [Header("Dungeon Settings")]
         public RoomScript dungeon;
         public Transform figurine;
-        private Vector2Int _figurinePosition;
-        
+        private Vector2Int _playerPosition;
+        private Vector2Int _basePosition;
+            
         private Room[,] _grid;
         private Material[,] _tileMaterials;
         private Dictionary<(int, int), Renderer> _iconRenderers;
@@ -39,14 +40,19 @@ namespace TableDungeon.Maze
         private int _zonesLeft;
         private Vector2Int _zoneSize = new Vector2Int(2, 4);
 
-        private const float VariantChance = 0.1F;
+        private Dictionary<Item.Type, int> _inventory;
+
+        private const float VariantChance = 0.2F;
 
         private void Awake()
         {
             _tileMaterials = new Material[rows, cols];
             _iconRenderers = new Dictionary<(int, int), Renderer>();
             zonePreview.gameObject.SetActive(false);
-            
+
+            _inventory = new Dictionary<Item.Type, int>();
+            Utilities.GetEnumValues<Item.Type>().ForEach(type => _inventory.Add(type, 0));
+
             var container = new GameObject("Tile Container");
             container.transform.parent = transform;
             
@@ -70,7 +76,8 @@ namespace TableDungeon.Maze
 
         private void Start()
         {
-            dungeon.OnPlayerMoved += direction => SetFigurinePosition(_figurinePosition + direction.GetIntVector());
+            dungeon.OnPlayerMoved += direction => SetFigurinePosition(_playerPosition + direction.GetIntVector());
+            dungeon.OnPlayerCollected += item => _inventory[item.type] += 1;
 
             var manager = FindObjectOfType<GameManager>();
             manager.Controls.Table.Mouse.performed += ctx =>
@@ -107,7 +114,7 @@ namespace TableDungeon.Maze
                     for (var y = j; y > j - _zoneSize.x; y--)
                     {
                         if (_grid[x, y].state != Room.State.Unreachable) continue;
-                        var variant = _grid[i, j].Random.NextDouble() > VariantChance ? 1 : 0;
+                        var variant = _grid[x, y].Random.NextDouble() > VariantChance ? 1 : 0;
                         
                         _grid[x, y].state = Room.State.Unvisited;
                         _tileMaterials[x, y].mainTextureOffset = new Vector2(0.5F, 0.5F * variant);
@@ -144,7 +151,7 @@ namespace TableDungeon.Maze
         private void SetFigurinePosition(Vector2Int value)
         {
             var (i, j) = (value.y, value.x);
-            _figurinePosition = value;
+            _playerPosition = value;
             
             // Moving figurine
             var pos = FromGridToWorld(i, j);
@@ -171,13 +178,9 @@ namespace TableDungeon.Maze
                 tileMaterial.mainTextureOffset = new Vector2(x, y);
             
                 // Creating icon if needed
-                if (room.chests.Any(item => item != null))
+                if (!_iconRenderers.ContainsKey((i, j)) && room.chests.Any(item => item != null))
                 {
-                    var obj = Instantiate(iconPrefab, pos, Quaternion.identity, transform);
-                    var iconRenderer = obj.GetComponentInChildren<Renderer>();
-                    obj.name = $"Chest Icon [{i}, {j}]";
-                    iconRenderer.material.mainTextureOffset = Vector2.right * (4.0F / 6);
-                    _iconRenderers.Add((i, j), iconRenderer);
+                    CreateIcon(i, j, 4);
                 }
             }
             
@@ -186,9 +189,11 @@ namespace TableDungeon.Maze
 
         public void Generate()
         {
-            var generator = new Generator(rows, cols, horizontalChance, verticalChance, lootChance, new Random());
+            var random = new Random();
+            var generator = new Generator(rows, cols, horizontalChance, verticalChance, lootChance, random);
             _grid = generator.Generate();
-            _iconRenderers.Values.ForEach(x => Destroy(x.gameObject));
+            _iconRenderers.Values.ForEach(x => Destroy(x.transform.parent.gameObject));
+            _iconRenderers.Clear();
             
             for (var i = 0; i < rows; i++)
             {
@@ -202,8 +207,21 @@ namespace TableDungeon.Maze
                 }
             }
 
-            dungeon.SetRoom(_grid[1, 1]);
-            SetFigurinePosition(new Vector2Int(1, 1));
+            // Generate base
+            _basePosition = new Vector2Int(random.Next(0, 4), random.Next(0, 4));
+            dungeon.SetRoom(_grid[_basePosition.y, _basePosition.x]);
+            CreateIcon(_basePosition.y, _basePosition.x, 0);
+            SetFigurinePosition(_basePosition);
+        }
+
+        private void CreateIcon(int i, int j, int index)
+        {
+            var pos = FromGridToWorld(i, j);
+            var obj = Instantiate(iconPrefab, pos, Quaternion.identity, transform);
+            var iconRenderer = obj.GetComponentInChildren<Renderer>();
+            obj.name = $"Icon #{index} [{i}, {j}]";
+            iconRenderer.material.mainTextureOffset = Vector2.right * (index / 6.0F);
+            _iconRenderers.Add((i, j), iconRenderer);
         }
 
         private Vector3 FromGridToWorld(int i, int j)

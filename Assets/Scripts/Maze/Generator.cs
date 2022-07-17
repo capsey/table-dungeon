@@ -55,7 +55,7 @@ namespace TableDungeon.Maze
                 {
                     if (!usedSets.Add(_sets[j]) && _random.NextDouble() > _vChance) continue;
 
-                    _grid[i + 1, j] = new Room(_random.Next());
+                    CreateRoom(i + 1, j);
                     ConnectRooms((i, j), (i + 1, j), Direction.South, _sets[j], -1);
                 }
 
@@ -100,20 +100,23 @@ namespace TableDungeon.Maze
             {
                 if (_grid[row, j] != null) continue;
 
-                // Creating empty room
-                var room = new Room(_random.Next());
-                _grid[row, j] = room;
-                
-                // Randomly adding chests
-                for (var i = 0; i < room.chests.Length; i++)
-                {
-                    if (_random.NextDouble() > _lChange) continue;
-                    room.chests[i] = new Item(_random);
-                }
-
-                // Assigning brand new set
+                CreateRoom(row, j);
                 var set = Enumerable.Range(0, int.MaxValue).First(x => !_sets.Contains(x));
                 _sets[j] = set;
+            }
+        }
+
+        private void CreateRoom(int i, int j)
+        {
+            // Creating empty room
+            var room = new Room(_random.Next());
+            _grid[i, j] = room;
+                
+            // Randomly adding chests
+            for (var k = 0; k < room.chests.Length; k++)
+            {
+                if (_random.NextDouble() > _lChange) continue;
+                room.chests[k] = new Item(_random);
             }
         }
     }
