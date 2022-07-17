@@ -9,9 +9,11 @@ namespace TableDungeon.Maze
         [Header("Board Settings")]
         [Min(1)] public int rows = 1;
         [Min(1)] public int cols = 1;
-        [Space]
         public float cellSize = 0.5F;
+        [Space]
         public GameObject tilePrefab;
+        public Texture2D unvisitedTileTexture;
+        public Texture2D visitedTileTexture;
         
         [Header("Generation Settings")]
         public float horizontalChance = 0.25F;
@@ -24,12 +26,10 @@ namespace TableDungeon.Maze
         
         private Room[,] _grid;
         private Renderer[,] _tileRenderers;
-        private Texture2D _tileTexture;
 
         private void Awake()
         {
             _tileRenderers = new Renderer[rows, cols];
-            _tileTexture = Resources.Load<Texture2D>("Sprites/Tiles");
             
             var container = new GameObject("Tile Container");
             container.transform.parent = transform;
@@ -58,6 +58,7 @@ namespace TableDungeon.Maze
         {
             figurine.position = FromGridToWorld(value.y, value.x);
             _figurinePosition = value;
+            _tileRenderers[value.y, value.x].material.mainTexture = visitedTileTexture;
         }
 
         public void Generate()
@@ -84,7 +85,7 @@ namespace TableDungeon.Maze
                     var rdr = _tileRenderers[i, j];
                     rdr.material = new Material(rdr.material)
                     {
-                        mainTexture = _tileTexture,
+                        mainTexture = unvisitedTileTexture,
                         mainTextureOffset = new Vector2(x, y)
                     };
                 }
