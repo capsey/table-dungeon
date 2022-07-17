@@ -5,8 +5,9 @@ namespace TableDungeon.Dungeon
     public class Room
     {
         public readonly DirectionMap<Room> doors = new DirectionMap<Room>();
-        public Item[] chests = new Item[4];
-        public Item.Type? trap = null;
+        public Chest[] chests = new Chest[4];
+        public Trap trap = null;
+        public bool blocked = false;
         public State state1 = State.Unreachable;
         public State state2 = State.Unreachable;
         

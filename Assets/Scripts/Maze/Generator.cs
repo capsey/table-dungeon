@@ -116,7 +116,7 @@ namespace TableDungeon.Maze
             for (var k = 0; k < room.chests.Length; k++)
             {
                 if (_random.NextDouble() > _lChange) continue;
-                room.chests[k] = new Item(_random);
+                room.chests[k] = new Chest(_random);
             }
         }
     }

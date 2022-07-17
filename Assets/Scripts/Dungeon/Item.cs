@@ -2,20 +2,32 @@
 
 namespace TableDungeon.Dungeon
 {
-    public class Item
+    public enum Item
     {
-        public readonly Type type;
+        Bomb, Spell
+    }
+    
+    public class Chest
+    {
+        public readonly Item item;
         public bool looted = false;
 
-        public Item(Random random)
+        public Chest(Random random)
         {
-            var types = Utilities.GetEnumValues<Type>();
-            type = types[random.Next(0, types.Length)];
+            var items = Utilities.GetEnumValues<Item>();
+            item = items[random.Next(0, items.Length)];
         }
-        
-        public enum Type
+    }
+
+    public class Trap
+    {
+        public readonly Item item;
+        public readonly bool player1;
+
+        public Trap(Item item, bool player1)
         {
-            Bomb
+            this.item = item;
+            this.player1 = player1;
         }
     }
 }

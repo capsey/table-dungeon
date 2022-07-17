@@ -178,17 +178,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""Accept"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""8c482ab1-13ea-422e-a8ab-540e8bdf4fa9"",
-                    ""path"": ""<Keyboard>/space"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Accept"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -227,6 +216,24 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""name"": ""RollDice"",
                     ""type"": ""Button"",
                     ""id"": ""013b6aba-7ce5-4c7f-bd9b-6f01d0107292"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SelectBomb"",
+                    ""type"": ""Button"",
+                    ""id"": ""967acfed-3e6a-4266-9794-fec244e4e988"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SelectSpell"",
+                    ""type"": ""Button"",
+                    ""id"": ""97ab4e0d-5a84-4f17-8e9d-729f27f19313"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -275,6 +282,28 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""RollDice"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ecade6f1-e236-4af2-8045-4d86dc2bdd19"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectBomb"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7672c00-ba5d-41df-af59-7c00020ea7b0"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectSpell"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -341,6 +370,8 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Table_RotateZone = m_Table.FindAction("Rotate Zone", throwIfNotFound: true);
         m_Table_Accept = m_Table.FindAction("Accept", throwIfNotFound: true);
         m_Table_RollDice = m_Table.FindAction("RollDice", throwIfNotFound: true);
+        m_Table_SelectBomb = m_Table.FindAction("SelectBomb", throwIfNotFound: true);
+        m_Table_SelectSpell = m_Table.FindAction("SelectSpell", throwIfNotFound: true);
         // Global
         m_Global = asset.FindActionMap("Global", throwIfNotFound: true);
         m_Global_ToggleView = m_Global.FindAction("ToggleView", throwIfNotFound: true);
@@ -449,6 +480,8 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     private readonly InputAction m_Table_RotateZone;
     private readonly InputAction m_Table_Accept;
     private readonly InputAction m_Table_RollDice;
+    private readonly InputAction m_Table_SelectBomb;
+    private readonly InputAction m_Table_SelectSpell;
     public struct TableActions
     {
         private @Controls m_Wrapper;
@@ -457,6 +490,8 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         public InputAction @RotateZone => m_Wrapper.m_Table_RotateZone;
         public InputAction @Accept => m_Wrapper.m_Table_Accept;
         public InputAction @RollDice => m_Wrapper.m_Table_RollDice;
+        public InputAction @SelectBomb => m_Wrapper.m_Table_SelectBomb;
+        public InputAction @SelectSpell => m_Wrapper.m_Table_SelectSpell;
         public InputActionMap Get() { return m_Wrapper.m_Table; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -478,6 +513,12 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @RollDice.started -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
                 @RollDice.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
                 @RollDice.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
+                @SelectBomb.started -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectBomb;
+                @SelectBomb.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectBomb;
+                @SelectBomb.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectBomb;
+                @SelectSpell.started -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectSpell;
+                @SelectSpell.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnSelectSpell;
             }
             m_Wrapper.m_TableActionsCallbackInterface = instance;
             if (instance != null)
@@ -494,6 +535,12 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @RollDice.started += instance.OnRollDice;
                 @RollDice.performed += instance.OnRollDice;
                 @RollDice.canceled += instance.OnRollDice;
+                @SelectBomb.started += instance.OnSelectBomb;
+                @SelectBomb.performed += instance.OnSelectBomb;
+                @SelectBomb.canceled += instance.OnSelectBomb;
+                @SelectSpell.started += instance.OnSelectSpell;
+                @SelectSpell.performed += instance.OnSelectSpell;
+                @SelectSpell.canceled += instance.OnSelectSpell;
             }
         }
     }
@@ -550,6 +597,8 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         void OnRotateZone(InputAction.CallbackContext context);
         void OnAccept(InputAction.CallbackContext context);
         void OnRollDice(InputAction.CallbackContext context);
+        void OnSelectBomb(InputAction.CallbackContext context);
+        void OnSelectSpell(InputAction.CallbackContext context);
     }
     public interface IGlobalActions
     {

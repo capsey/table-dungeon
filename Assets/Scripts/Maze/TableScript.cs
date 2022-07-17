@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TableDungeon.Dungeon;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Random = System.Random;
 
 namespace TableDungeon.Maze
@@ -32,6 +32,10 @@ namespace TableDungeon.Maze
         [Header("UI Settings")]
         public Transform zonePreview;
         public TextMeshProUGUI dicesLeftText;
+        public TextMeshProUGUI bombsLeftText;
+        public TextMeshProUGUI spellsLeftText;
+        public Transform bombCard;
+        public Transform spellCard;
         
         [Header("Dungeon Settings")]
         public RoomScript dungeon;
@@ -51,7 +55,9 @@ namespace TableDungeon.Maze
         private int _zonesLeft = 0;
         private Vector2Int _zoneSize = new Vector2Int(2, 4);
 
-        private Dictionary<Item.Type, int> _inventory;
+        private Dictionary<Item, int> _inventory1;
+        private Dictionary<Item, int> _inventory2;
+        private Item _selectedItem = Item.Bomb;
 
         private const float VariantChance = 0.2F;
 
@@ -61,8 +67,13 @@ namespace TableDungeon.Maze
             _iconRenderers = new Dictionary<(int, int), Renderer>();
             zonePreview.gameObject.SetActive(false);
 
-            _inventory = new Dictionary<Item.Type, int>();
-            Utilities.GetEnumValues<Item.Type>().ForEach(type => _inventory.Add(type, 0));
+            _inventory1 = new Dictionary<Item, int>();
+            _inventory2 = new Dictionary<Item, int>();
+            Utilities.GetEnumValues<Item>().ForEach(item =>
+            {
+                _inventory1.Add(item, 0);
+                _inventory2.Add(item, 0);
+            });
 
             var container = new GameObject("Tile Container");
             container.transform.parent = transform;
@@ -87,7 +98,11 @@ namespace TableDungeon.Maze
         {
             dungeon.OnPlayerMoved += direction =>
                 SetFigurinePosition((_manager.Player1 ? _playerPosition1 : _playerPosition2) + direction.GetIntVector());
-            dungeon.OnPlayerCollected += item => _inventory[item.type] += 1;
+            dungeon.OnPlayerCollected += item =>
+            {
+                (_manager.Player1 ? _inventory1 : _inventory2)[item] += 1;
+                RedrawText();
+            };
 
             _manager = FindObjectOfType<GameManager>();
             _manager.OnStateChanged += (s, p, changed) =>
@@ -103,8 +118,31 @@ namespace TableDungeon.Maze
             _manager.Controls.Table.Accept.performed += _ =>
                 ApplyZone(_manager.Controls.Table.Mouse.ReadValue<Vector2>(), _manager.TableCamera);
             _manager.Controls.Table.RollDice.performed += _ => RollDice();
+            _manager.Controls.Table.SelectBomb.performed += _ =>
+            {
+                _selectedItem = Item.Bomb;
+                RedrawCards();
+            };
+            _manager.Controls.Table.SelectSpell.performed += _ =>
+            {
+                _selectedItem = Item.Spell;
+                RedrawCards();
+            };
             
             Generate();
+        }
+
+        private void RedrawText()
+        {
+            var inventory = _manager.Player1 ? _inventory1 : _inventory2;
+            bombsLeftText.text = $"Bombs Left: {inventory[Item.Bomb]}";
+            spellsLeftText.text = $"Spells Left: {inventory[Item.Spell]}";
+        }
+
+        private void RedrawCards()
+        {
+            bombCard.position = _selectedItem == Item.Bomb ? Vector3.up : Vector3.zero;
+            spellCard.position = _selectedItem == Item.Spell ? Vector3.up : Vector3.zero;
         }
 
         private void Update()
@@ -123,8 +161,6 @@ namespace TableDungeon.Maze
 
         private void ApplyZone(Vector2 mouse, Camera cam)
         {
-            if (_zonesLeft <= 0) return;
-            
             var ray = cam.ScreenPointToRay(mouse);
             var mask = LayerMask.GetMask("Table Mesh");
 
@@ -133,21 +169,36 @@ namespace TableDungeon.Maze
                 var (i, j) = FromWorldToGrid(result.point);
                 i = Math.Clamp(i, _zoneSize.y - 1, rows - 1);
                 j = Math.Clamp(j, _zoneSize.x - 1, cols - 1);
-
-                for (var x = i; x > i - _zoneSize.y; x--)
+                
+                if (_zonesLeft > 0)
                 {
-                    for (var y = j; y > j - _zoneSize.x; y--)
+                    for (var x = i; x > i - _zoneSize.y; x--)
                     {
-                        if ((_manager.Player1 ? _grid[x, y].state1 : _grid[x, y].state2) != Room.State.Unreachable) continue;
+                        for (var y = j; y > j - _zoneSize.x; y--)
+                        {
+                            if ((_manager.Player1 ? _grid[x, y].state1 : _grid[x, y].state2) != Room.State.Unreachable)
+                                continue;
 
-                        if (_manager.Player1) _grid[x, y].state1 = Room.State.Unvisited;
-                        else _grid[x, y].state2 = Room.State.Unvisited;
-                        RedrawTile(x, y);
+                            if (_manager.Player1) _grid[x, y].state1 = Room.State.Unvisited;
+                            else _grid[x, y].state2 = Room.State.Unvisited;
+                            RedrawTile(x, y);
+                        }
+                    }
+                    
+                    zonePreview.gameObject.SetActive(--_zonesLeft > 0);
+                }
+                else if ((_manager.Player1 ? _inventory1 : _inventory2)[_selectedItem] > 0)
+                {
+                    var room = _grid[i, j];
+
+                    if ((room.trap == null || room.trap.player1 != _manager.Player1) && (_manager.Player1 ? room.state1 : room.state2) == Room.State.Visited)
+                    {
+                        room.trap = new Trap(_selectedItem, _manager.Player1);
+                        RedrawTile(i, j);
+                        (_manager.Player1 ? _inventory1 : _inventory2)[_selectedItem]--;
                     }
                 }
             }
-
-            zonePreview.gameObject.SetActive(--_zonesLeft > 0);
         }
 
         private void OnMouseMoved(Vector2 mouse, Camera cam)
@@ -175,6 +226,9 @@ namespace TableDungeon.Maze
 
         private void SetFigurinePosition(Vector2Int value)
         {
+            if (value == _basePosition2 && _manager.Player1) SceneManager.LoadScene("GameOver1");
+            if (value == _basePosition1 && !_manager.Player1) SceneManager.LoadScene("GameOver2");
+            
             var (i, j) = (value.y, value.x);
             if (_manager.Player1) _playerPosition1 = value;
             else _playerPosition2 = value;
@@ -226,10 +280,22 @@ namespace TableDungeon.Maze
                     material.mainTextureOffset = new Vector2(x, y);
 
                     // Creating icon if needed
-                    if (!_iconRenderers.ContainsKey((i, j)) && room.chests.Any(item => item != null))
+                    var icon = -1;
+
+                    if (room.trap != null && room.trap.player1 == _manager.Player1)
                     {
-                        CreateIcon(i, j, 4);
+                        icon = room.trap.item switch {
+                            Item.Bomb => 5,
+                            Item.Spell => 6,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
                     }
+                    else if (room.chests.Any(item => item != null))
+                    {
+                        icon = 4;
+                    }
+                    
+                    if (icon < 0) SetIcon(i, j, icon);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -268,19 +334,32 @@ namespace TableDungeon.Maze
             var basePos = _manager.Player1 ? _basePosition1 : _basePosition2;
             var playerPos = _manager.Player1 ? _playerPosition1 : _playerPosition2;
             
-            CreateIcon(basePos.y, basePos.x, _manager.Player1 ? 0 : 1);
+            SetIcon(basePos.y, basePos.x, _manager.Player1 ? 0 : 1);
             dungeon.SetRoom(_grid[playerPos.y, playerPos.x]);
             SetFigurinePosition(playerPos);
         }
 
-        private void CreateIcon(int i, int j, int index)
+        private void SetIcon(int i, int j, int index)
         {
-            var pos = FromGridToWorld(i, j);
-            var obj = Instantiate(iconPrefab, pos, Quaternion.identity, transform);
-            var iconRenderer = obj.GetComponentInChildren<Renderer>();
-            obj.name = $"Icon #{index} [{i}, {j}]";
-            iconRenderer.material.mainTextureOffset = Vector2.right * (index / 6.0F);
-            _iconRenderers.Add((i, j), iconRenderer);
+            var key = (i, j);
+            Material material;
+            
+            if (!_iconRenderers.ContainsKey(key))
+            {
+                var pos = FromGridToWorld(i, j);
+                var obj = Instantiate(iconPrefab, pos, Quaternion.identity, transform);
+                obj.name = $"Icon #{index} [{i}, {j}]";
+                
+                var iconRenderer = obj.GetComponentInChildren<Renderer>();
+                _iconRenderers.Add(key, iconRenderer);
+                material = iconRenderer.material;
+            }
+            else
+            {
+                material = _iconRenderers[key].material;
+            }
+            
+            material.mainTextureOffset = Vector2.right * (index / 7.0F);
         }
 
         private Vector3 FromGridToWorld(int i, int j)

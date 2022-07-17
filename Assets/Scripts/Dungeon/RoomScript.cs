@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TableDungeon.Player;
 using UnityEngine;
@@ -8,6 +9,8 @@ namespace TableDungeon.Dungeon
     public class RoomScript : MonoBehaviour
     {
         public DirectionMap<Door> doors;
+        public DirectionMap<GameObject> rocks;
+        public GameObject bomb;
         public ChestScript[] chests;
         public Decoration[] decorations;
         [Space]
@@ -35,22 +38,35 @@ namespace TableDungeon.Dungeon
         public void SetRoom(Room value)
         {
             var random = value.Random;
+            var manager = FindObjectOfType<GameManager>();
+            var bombHere = value.trap?.item == Item.Bomb && value.trap?.player1 != manager.Player1;
+            
+            StopAllCoroutines();
+            if (bombHere) StartCoroutine(BombCoroutine());
+            bomb.SetActive(bombHere);
             
             foreach (var direction in Directions.Values)
             {
-                doors[direction].gameObject.SetActive(value.doors[direction] != null);
+                rocks[direction]?.SetActive(value.doors[direction].blocked);
+                doors[direction].gameObject.SetActive(value.doors[direction] != null && !value.doors[direction].blocked);
                 doors[direction].Target = value.doors[direction];
             }
 
             for (var i = 0; i < chests.Length; i++)
             {
-                chests[i].SetItem(value.chests[i]);
+                chests[i].SetChest(value.chests[i]);
             }
             
             foreach (var decoration in decorations)
             {
                 decoration.Randomize(random, 0.25F);
             }
+        }
+
+        private IEnumerator BombCoroutine()
+        {
+            yield return new WaitForSeconds(5);
+            FindObjectOfType<GameManager>().EndMove();
         }
 
         private void OnPlayerEntered(Direction direction, Room target)

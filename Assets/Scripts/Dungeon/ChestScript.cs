@@ -13,7 +13,7 @@ namespace TableDungeon.Dungeon
         
         private Collider2D _collider;
         private SpriteRenderer _renderer;
-        [CanBeNull] private Item _item;
+        [CanBeNull] private Chest _chest;
         private GameManager _manager;
         
         public Collider2D Player { get; set; }
@@ -34,19 +34,19 @@ namespace TableDungeon.Dungeon
 
         private void OnAcceptPerformed(InputAction.CallbackContext ctx)
         {
-            if (_item == null || _item.looted) return;
+            if (_chest == null || _chest.looted) return;
             if (!_collider.IsTouching(Player)) return;
             
-            OnPlayerCollected?.Invoke(_item);
-            _item.looted = true;
+            OnPlayerCollected?.Invoke(_chest.item);
+            _chest.looted = true;
             _renderer.sprite = opened;
         }
 
-        public void SetItem([CanBeNull] Item item)
+        public void SetChest([CanBeNull] Chest chest)
         {
-            gameObject.SetActive(item != null);
-            _renderer.sprite = item != null && item.looted ? opened : closed;
-            _item = item;
+            gameObject.SetActive(chest != null);
+            _renderer.sprite = chest != null && chest.looted ? opened : closed;
+            _chest = chest;
         }
     }
 }

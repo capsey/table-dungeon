@@ -156,17 +156,6 @@
                     "action": "Accept",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "8c482ab1-13ea-422e-a8ab-540e8bdf4fa9",
-                    "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Accept",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 }
             ]
         },
@@ -205,6 +194,24 @@
                     "name": "RollDice",
                     "type": "Button",
                     "id": "013b6aba-7ce5-4c7f-bd9b-6f01d0107292",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SelectBomb",
+                    "type": "Button",
+                    "id": "967acfed-3e6a-4266-9794-fec244e4e988",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SelectSpell",
+                    "type": "Button",
+                    "id": "97ab4e0d-5a84-4f17-8e9d-729f27f19313",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -253,6 +260,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "RollDice",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ecade6f1-e236-4af2-8045-4d86dc2bdd19",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectBomb",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c7672c00-ba5d-41df-af59-7c00020ea7b0",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectSpell",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
