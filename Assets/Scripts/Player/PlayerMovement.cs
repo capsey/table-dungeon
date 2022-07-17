@@ -18,8 +18,9 @@ namespace TableDungeon.Player
 
         private void Start()
         {
-            InputManager.Controls.Player.Movement.performed += OnInputMovement;
-            InputManager.Controls.Player.Movement.canceled += OnInputMovement;
+            var manager = FindObjectOfType<GameManager>();
+            manager.Controls.Player.Movement.performed += OnInputMovement;
+            manager.Controls.Player.Movement.canceled += OnInputMovement;
         }
 
         private void OnInputMovement(InputAction.CallbackContext ctx)

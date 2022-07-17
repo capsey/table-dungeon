@@ -14,11 +14,15 @@ namespace TableDungeon.Maze
         [Header("Generation Settings")]
         public float horizontalChance = 0.25F;
         public float verticalChance = 0.25F;
+        [Header("Dungeon Settings")]
+        public RoomScript dungeon;
+        public Transform figurine;
+        private Vector2Int _figurinePosition;
         
         private Room[,] _grid;
         private SpriteRenderer[,] _sprites;
-        
-        private void Start()
+
+        private void Awake()
         {
             _sprites = new SpriteRenderer[rows, cols];
             
@@ -49,6 +53,17 @@ namespace TableDungeon.Maze
             Generate();
         }
 
+        private void Start()
+        {
+            dungeon.onPlayerMoved += direction => SetFigurinePosition(_figurinePosition + direction.GetIntVector());
+        }
+
+        private void SetFigurinePosition(Vector2Int value)
+        {
+            figurine.position = FromGridToWorld(value.y, value.x);
+            _figurinePosition = value;
+        }
+
         public void Generate()
         {
             var generator = new Generator(rows, cols, horizontalChance, verticalChance, new Random());
@@ -70,6 +85,9 @@ namespace TableDungeon.Maze
                     _sprites[i, j].sprite = Resources.LoadAll<Sprite>("Sprites/Tiles")[index];
                 }
             }
+
+            dungeon.SetRoom(_grid[1, 1]);
+            SetFigurinePosition(new Vector2Int(1, 1));
         }
 
         private Vector3 FromGridToWorld(int i, int j)
@@ -86,7 +104,7 @@ namespace TableDungeon.Maze
                 for (var j = 0; j < cols; j++)
                 {
                     var size = new Vector3(cellSize, 0, cellSize);
-                    var center = FromGridToWorld(i, j) + Vector3.up * 0.26F;
+                    var center = FromGridToWorld(i, j) + Vector3.up * 0.25F;
                     
                     Gizmos.DrawWireCube(center, size);
                 }

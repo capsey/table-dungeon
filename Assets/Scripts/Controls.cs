@@ -92,6 +92,89 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Arrows"",
+                    ""id"": ""d41e3958-d733-4ddc-8f55-352aa63063cc"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""4a2525c9-4661-42f8-a35a-cb89603a40e0"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""14fad19e-562a-4946-8126-429ebb864500"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""96b92867-4e1a-420f-acc7-7b8a9f158a0e"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""53aafbcd-af6a-4358-86e7-2a74b07b9163"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                }
+            ]
+        },
+        {
+            ""name"": ""DEBUG"",
+            ""id"": ""d4fd31ec-e59d-4428-9cb9-0cfedfa2f110"",
+            ""actions"": [
+                {
+                    ""name"": ""ToggleView"",
+                    ""type"": ""Button"",
+                    ""id"": ""fb0fb696-afce-4262-937d-b68333b3ac57"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""6e928615-4890-418e-8c7b-2d0f45b0fb43"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleView"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -101,6 +184,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
+        // DEBUG
+        m_DEBUG = asset.FindActionMap("DEBUG", throwIfNotFound: true);
+        m_DEBUG_ToggleView = m_DEBUG.FindAction("ToggleView", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -189,8 +275,45 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // DEBUG
+    private readonly InputActionMap m_DEBUG;
+    private IDEBUGActions m_DEBUGActionsCallbackInterface;
+    private readonly InputAction m_DEBUG_ToggleView;
+    public struct DEBUGActions
+    {
+        private @Controls m_Wrapper;
+        public DEBUGActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ToggleView => m_Wrapper.m_DEBUG_ToggleView;
+        public InputActionMap Get() { return m_Wrapper.m_DEBUG; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(DEBUGActions set) { return set.Get(); }
+        public void SetCallbacks(IDEBUGActions instance)
+        {
+            if (m_Wrapper.m_DEBUGActionsCallbackInterface != null)
+            {
+                @ToggleView.started -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
+                @ToggleView.performed -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
+                @ToggleView.canceled -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
+            }
+            m_Wrapper.m_DEBUGActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @ToggleView.started += instance.OnToggleView;
+                @ToggleView.performed += instance.OnToggleView;
+                @ToggleView.canceled += instance.OnToggleView;
+            }
+        }
+    }
+    public DEBUGActions @DEBUG => new DEBUGActions(this);
     public interface IPlayerActions
     {
         void OnMovement(InputAction.CallbackContext context);
+    }
+    public interface IDEBUGActions
+    {
+        void OnToggleView(InputAction.CallbackContext context);
     }
 }

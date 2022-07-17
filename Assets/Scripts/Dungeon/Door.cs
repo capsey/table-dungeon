@@ -5,16 +5,14 @@ namespace TableDungeon.Dungeon
 {
     public class Door : MonoBehaviour
     {
-        public Direction direction;
-        
-        public event Action<Direction, Room, Transform> onPlayerEntered;
+        public event Action<Room, Transform> onPlayerEntered;
         
         public Room Target { private get; set; }
         
-        private void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter2D(Collider2D other)
         {
             if (!other.CompareTag("Player")) return;
-            onPlayerEntered?.Invoke(direction, Target, other.transform);
+            onPlayerEntered?.Invoke(Target, other.transform);
         }
     }
 }

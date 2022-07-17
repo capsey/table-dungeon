@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace TableDungeon.Dungeon
@@ -19,10 +20,21 @@ namespace TableDungeon.Dungeon
                 Direction.South => Vector2.down,
                 Direction.West => Vector2.left,
                 Direction.East => Vector2.right,
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
             };
         }
         
+        public static Vector2Int GetIntVector(this Direction direction)
+        {
+            return direction switch {
+                Direction.North => Vector2Int.down,
+                Direction.South => Vector2Int.up,
+                Direction.West => Vector2Int.left,
+                Direction.East => Vector2Int.right,
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
+        }
+
         public static Direction Opposite(this Direction direction)
         {
             return direction switch {
@@ -30,7 +42,7 @@ namespace TableDungeon.Dungeon
                 Direction.South => Direction.North,
                 Direction.West => Direction.East,
                 Direction.East => Direction.West,
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
             };
         }
     }
