@@ -11,20 +11,25 @@ namespace TableDungeon.Maze
         [Min(1)] public int cols = 1;
         [Space]
         public float cellSize = 0.5F;
+        public GameObject tilePrefab;
+        
         [Header("Generation Settings")]
         public float horizontalChance = 0.25F;
         public float verticalChance = 0.25F;
+        
         [Header("Dungeon Settings")]
         public RoomScript dungeon;
         public Transform figurine;
         private Vector2Int _figurinePosition;
         
         private Room[,] _grid;
-        private SpriteRenderer[,] _sprites;
+        private Renderer[,] _tileRenderers;
+        private Texture2D _tileTexture;
 
         private void Awake()
         {
-            _sprites = new SpriteRenderer[rows, cols];
+            _tileRenderers = new Renderer[rows, cols];
+            _tileTexture = Resources.Load<Texture2D>("Sprites/Tiles");
             
             var container = new GameObject("Tile Container");
             container.transform.parent = transform;
@@ -33,20 +38,11 @@ namespace TableDungeon.Maze
             {
                 for (var j = 0; j < cols; j++)
                 {
-                    var center = FromGridToWorld(i, j) + Vector3.up * 0.26F;
-                    var obj = new GameObject($"Tile [{i}, {j}]");
+                    var center = FromGridToWorld(i, j);
+                    var obj = Instantiate(tilePrefab, center, Quaternion.identity, container.transform);
                     
-                    // Setting transformation
-                    var tfm = obj.transform;
-                    tfm.rotation = Quaternion.Euler(90, 0, 0);
-                    tfm.localScale = Vector3.one * cellSize;
-                    tfm.parent = container.transform;
-                    tfm.position = center;
-
-                    // Adding a renderer
-                    var rdr = obj.AddComponent<SpriteRenderer>();
-                    rdr.sprite = Resources.LoadAll<Sprite>("Sprites/Tiles")[0];
-                    _sprites[i, j] = rdr;
+                    obj.name = $"Tile [{i}, {j}]";
+                    _tileRenderers[i, j] = obj.GetComponentInChildren<Renderer>();
                 }
             }
             
@@ -81,8 +77,16 @@ namespace TableDungeon.Maze
                         if (room?.doors[direction] != null) index += 1 << k;
                     });
 
+                    var x = (index % 4) / 4.0F;
+                    var y = (index / 4) / 4.0F;
+
                     // Setting sprite
-                    _sprites[i, j].sprite = Resources.LoadAll<Sprite>("Sprites/Tiles")[index];
+                    var rdr = _tileRenderers[i, j];
+                    rdr.material = new Material(rdr.material)
+                    {
+                        mainTexture = _tileTexture,
+                        mainTextureOffset = new Vector2(x, y)
+                    };
                 }
             }
 
@@ -97,7 +101,7 @@ namespace TableDungeon.Maze
             return new Vector3(x * cellSize, 0, z * -cellSize);
         }
 
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
             for (var i = 0; i < rows; i++)
             {
@@ -106,6 +110,7 @@ namespace TableDungeon.Maze
                     var size = new Vector3(cellSize, 0, cellSize);
                     var center = FromGridToWorld(i, j) + Vector3.up * 0.25F;
                     
+                    Gizmos.color = new Color(1, 1, 1, 0.05F);
                     Gizmos.DrawWireCube(center, size);
                 }
             }
