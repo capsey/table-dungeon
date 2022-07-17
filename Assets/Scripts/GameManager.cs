@@ -10,6 +10,8 @@ namespace TableDungeon
         public GameState State { get; private set; }
         public Controls Controls { get; private set; }
 
+        public Camera TableCamera => tableCamera;
+
         private void Awake()
         {
             Controls = new Controls();
@@ -30,10 +32,11 @@ namespace TableDungeon
             switch (value)
             {
                 case GameState.Table:
+                    Controls.Table.Enable();
                     tableCamera.enabled = true;
                     break;
                 case GameState.Dungeon:
-                    Controls.Player.Enable();
+                    Controls.Dungeon.Enable();
                     dungeonCamera.enabled = true;
                     break;
                 default:

@@ -24,7 +24,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     ""name"": ""Controls"",
     ""maps"": [
         {
-            ""name"": ""Player"",
+            ""name"": ""Dungeon"",
             ""id"": ""3aa3f95c-8cf9-4c35-8d32-123f74715c09"",
             ""actions"": [
                 {
@@ -35,6 +35,15 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Accept"",
+                    ""type"": ""Button"",
+                    ""id"": ""131057f7-8bb1-4bcd-b926-f3197807890a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -147,6 +156,127 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""81f41c07-46ac-4a90-9980-66de19174b9a"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accept"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b1e95a64-5ef1-428d-ac59-be1273fd616b"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accept"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8c482ab1-13ea-422e-a8ab-540e8bdf4fa9"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accept"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Table"",
+            ""id"": ""26c79903-9ad1-4802-91e9-8330e45b5216"",
+            ""actions"": [
+                {
+                    ""name"": ""Mouse"",
+                    ""type"": ""Value"",
+                    ""id"": ""dc223c36-c896-46ef-ab49-2e3cc4f207e0"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Rotate Zone"",
+                    ""type"": ""Button"",
+                    ""id"": ""f3f93815-c286-4f5f-ac12-a9faeadfda2b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Accept"",
+                    ""type"": ""Button"",
+                    ""id"": ""e6dcb8bd-95ae-4c92-8884-3eb4b49a31e4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RollDice"",
+                    ""type"": ""Button"",
+                    ""id"": ""013b6aba-7ce5-4c7f-bd9b-6f01d0107292"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""ae851081-efca-4474-9334-31427cce6c62"",
+                    ""path"": ""<Pointer>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Mouse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9b07fb83-07ee-4d4e-991e-c52481bebf36"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Rotate Zone"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9d40aef7-8925-4adb-ac31-a59b6f7b2514"",
+                    ""path"": ""<Pointer>/press"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accept"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cebbe0e3-498c-4084-9c27-77d894283118"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RollDice"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -181,9 +311,16 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     ],
     ""controlSchemes"": []
 }");
-        // Player
-        m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
-        m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
+        // Dungeon
+        m_Dungeon = asset.FindActionMap("Dungeon", throwIfNotFound: true);
+        m_Dungeon_Movement = m_Dungeon.FindAction("Movement", throwIfNotFound: true);
+        m_Dungeon_Accept = m_Dungeon.FindAction("Accept", throwIfNotFound: true);
+        // Table
+        m_Table = asset.FindActionMap("Table", throwIfNotFound: true);
+        m_Table_Mouse = m_Table.FindAction("Mouse", throwIfNotFound: true);
+        m_Table_RotateZone = m_Table.FindAction("Rotate Zone", throwIfNotFound: true);
+        m_Table_Accept = m_Table.FindAction("Accept", throwIfNotFound: true);
+        m_Table_RollDice = m_Table.FindAction("RollDice", throwIfNotFound: true);
         // DEBUG
         m_DEBUG = asset.FindActionMap("DEBUG", throwIfNotFound: true);
         m_DEBUG_ToggleView = m_DEBUG.FindAction("ToggleView", throwIfNotFound: true);
@@ -243,38 +380,103 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         return asset.FindBinding(bindingMask, out action);
     }
 
-    // Player
-    private readonly InputActionMap m_Player;
-    private IPlayerActions m_PlayerActionsCallbackInterface;
-    private readonly InputAction m_Player_Movement;
-    public struct PlayerActions
+    // Dungeon
+    private readonly InputActionMap m_Dungeon;
+    private IDungeonActions m_DungeonActionsCallbackInterface;
+    private readonly InputAction m_Dungeon_Movement;
+    private readonly InputAction m_Dungeon_Accept;
+    public struct DungeonActions
     {
         private @Controls m_Wrapper;
-        public PlayerActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Movement => m_Wrapper.m_Player_Movement;
-        public InputActionMap Get() { return m_Wrapper.m_Player; }
+        public DungeonActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Movement => m_Wrapper.m_Dungeon_Movement;
+        public InputAction @Accept => m_Wrapper.m_Dungeon_Accept;
+        public InputActionMap Get() { return m_Wrapper.m_Dungeon; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
         public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(PlayerActions set) { return set.Get(); }
-        public void SetCallbacks(IPlayerActions instance)
+        public static implicit operator InputActionMap(DungeonActions set) { return set.Get(); }
+        public void SetCallbacks(IDungeonActions instance)
         {
-            if (m_Wrapper.m_PlayerActionsCallbackInterface != null)
+            if (m_Wrapper.m_DungeonActionsCallbackInterface != null)
             {
-                @Movement.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMovement;
-                @Movement.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMovement;
-                @Movement.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMovement;
+                @Movement.started -= m_Wrapper.m_DungeonActionsCallbackInterface.OnMovement;
+                @Movement.performed -= m_Wrapper.m_DungeonActionsCallbackInterface.OnMovement;
+                @Movement.canceled -= m_Wrapper.m_DungeonActionsCallbackInterface.OnMovement;
+                @Accept.started -= m_Wrapper.m_DungeonActionsCallbackInterface.OnAccept;
+                @Accept.performed -= m_Wrapper.m_DungeonActionsCallbackInterface.OnAccept;
+                @Accept.canceled -= m_Wrapper.m_DungeonActionsCallbackInterface.OnAccept;
             }
-            m_Wrapper.m_PlayerActionsCallbackInterface = instance;
+            m_Wrapper.m_DungeonActionsCallbackInterface = instance;
             if (instance != null)
             {
                 @Movement.started += instance.OnMovement;
                 @Movement.performed += instance.OnMovement;
                 @Movement.canceled += instance.OnMovement;
+                @Accept.started += instance.OnAccept;
+                @Accept.performed += instance.OnAccept;
+                @Accept.canceled += instance.OnAccept;
             }
         }
     }
-    public PlayerActions @Player => new PlayerActions(this);
+    public DungeonActions @Dungeon => new DungeonActions(this);
+
+    // Table
+    private readonly InputActionMap m_Table;
+    private ITableActions m_TableActionsCallbackInterface;
+    private readonly InputAction m_Table_Mouse;
+    private readonly InputAction m_Table_RotateZone;
+    private readonly InputAction m_Table_Accept;
+    private readonly InputAction m_Table_RollDice;
+    public struct TableActions
+    {
+        private @Controls m_Wrapper;
+        public TableActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Mouse => m_Wrapper.m_Table_Mouse;
+        public InputAction @RotateZone => m_Wrapper.m_Table_RotateZone;
+        public InputAction @Accept => m_Wrapper.m_Table_Accept;
+        public InputAction @RollDice => m_Wrapper.m_Table_RollDice;
+        public InputActionMap Get() { return m_Wrapper.m_Table; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(TableActions set) { return set.Get(); }
+        public void SetCallbacks(ITableActions instance)
+        {
+            if (m_Wrapper.m_TableActionsCallbackInterface != null)
+            {
+                @Mouse.started -= m_Wrapper.m_TableActionsCallbackInterface.OnMouse;
+                @Mouse.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnMouse;
+                @Mouse.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnMouse;
+                @RotateZone.started -= m_Wrapper.m_TableActionsCallbackInterface.OnRotateZone;
+                @RotateZone.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnRotateZone;
+                @RotateZone.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnRotateZone;
+                @Accept.started -= m_Wrapper.m_TableActionsCallbackInterface.OnAccept;
+                @Accept.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnAccept;
+                @Accept.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnAccept;
+                @RollDice.started -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
+                @RollDice.performed -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
+                @RollDice.canceled -= m_Wrapper.m_TableActionsCallbackInterface.OnRollDice;
+            }
+            m_Wrapper.m_TableActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Mouse.started += instance.OnMouse;
+                @Mouse.performed += instance.OnMouse;
+                @Mouse.canceled += instance.OnMouse;
+                @RotateZone.started += instance.OnRotateZone;
+                @RotateZone.performed += instance.OnRotateZone;
+                @RotateZone.canceled += instance.OnRotateZone;
+                @Accept.started += instance.OnAccept;
+                @Accept.performed += instance.OnAccept;
+                @Accept.canceled += instance.OnAccept;
+                @RollDice.started += instance.OnRollDice;
+                @RollDice.performed += instance.OnRollDice;
+                @RollDice.canceled += instance.OnRollDice;
+            }
+        }
+    }
+    public TableActions @Table => new TableActions(this);
 
     // DEBUG
     private readonly InputActionMap m_DEBUG;
@@ -308,9 +510,17 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         }
     }
     public DEBUGActions @DEBUG => new DEBUGActions(this);
-    public interface IPlayerActions
+    public interface IDungeonActions
     {
         void OnMovement(InputAction.CallbackContext context);
+        void OnAccept(InputAction.CallbackContext context);
+    }
+    public interface ITableActions
+    {
+        void OnMouse(InputAction.CallbackContext context);
+        void OnRotateZone(InputAction.CallbackContext context);
+        void OnAccept(InputAction.CallbackContext context);
+        void OnRollDice(InputAction.CallbackContext context);
     }
     public interface IDEBUGActions
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 namespace TableDungeon
 {
@@ -22,6 +23,11 @@ namespace TableDungeon
         {
             var i = 0;
             foreach (var value in enumerator) predicate.Invoke(value, i++);
+        }
+
+        public static double NextRange(this Random random, double min, double max)
+        {
+            return min + random.NextDouble() * (max - min);
         }
     }
 }

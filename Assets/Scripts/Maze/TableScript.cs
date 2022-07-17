@@ -1,4 +1,7 @@
-﻿using TableDungeon.Dungeon;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using TableDungeon.Dungeon;
 using UnityEngine;
 using Random = System.Random;
 
@@ -12,12 +15,17 @@ namespace TableDungeon.Maze
         public float cellSize = 0.5F;
         [Space]
         public GameObject tilePrefab;
+        public GameObject iconPrefab;
         public Texture2D unvisitedTileTexture;
         public Texture2D visitedTileTexture;
         
         [Header("Generation Settings")]
-        public float horizontalChance = 0.25F;
-        public float verticalChance = 0.25F;
+        public float horizontalChance = 0.5F;
+        public float verticalChance = 0.5F;
+        public float lootChance = 0.1F;
+
+        [Header("UI Settings")]
+        public Transform zonePreview;
         
         [Header("Dungeon Settings")]
         public RoomScript dungeon;
@@ -25,11 +33,19 @@ namespace TableDungeon.Maze
         private Vector2Int _figurinePosition;
         
         private Room[,] _grid;
-        private Renderer[,] _tileRenderers;
+        private Material[,] _tileMaterials;
+        private Dictionary<(int, int), Renderer> _iconRenderers;
+
+        private int _zonesLeft;
+        private Vector2Int _zoneSize = new Vector2Int(2, 4);
+
+        private const float VariantChance = 0.1F;
 
         private void Awake()
         {
-            _tileRenderers = new Renderer[rows, cols];
+            _tileMaterials = new Material[rows, cols];
+            _iconRenderers = new Dictionary<(int, int), Renderer>();
+            zonePreview.gameObject.SetActive(false);
             
             var container = new GameObject("Tile Container");
             container.transform.parent = transform;
@@ -40,9 +56,12 @@ namespace TableDungeon.Maze
                 {
                     var center = FromGridToWorld(i, j);
                     var obj = Instantiate(tilePrefab, center, Quaternion.identity, container.transform);
-                    
+                    var rdr = obj.GetComponentInChildren<Renderer>();
+                    var material = new Material(rdr.material);
+
                     obj.name = $"Tile [{i}, {j}]";
-                    _tileRenderers[i, j] = obj.GetComponentInChildren<Renderer>();
+                    rdr.material = material;
+                    _tileMaterials[i, j] = material;
                 }
             }
             
@@ -51,43 +70,135 @@ namespace TableDungeon.Maze
 
         private void Start()
         {
-            dungeon.onPlayerMoved += direction => SetFigurinePosition(_figurinePosition + direction.GetIntVector());
+            dungeon.OnPlayerMoved += direction => SetFigurinePosition(_figurinePosition + direction.GetIntVector());
+
+            var manager = FindObjectOfType<GameManager>();
+            manager.Controls.Table.Mouse.performed += ctx =>
+                OnMouseMoved(ctx.ReadValue<Vector2>(), manager.TableCamera);
+            manager.Controls.Table.RotateZone.performed += _ =>
+                _zoneSize = new Vector2Int(_zoneSize.y, _zoneSize.x);
+            manager.Controls.Table.Accept.performed += _ =>
+                ApplyZone(manager.Controls.Table.Mouse.ReadValue<Vector2>(), manager.TableCamera);
+            manager.Controls.Table.RollDice.performed += _ => RollDice();
+        }
+
+        private void RollDice()
+        {
+            var random = new Random();
+            _zonesLeft += 1;
+            _zoneSize = new Vector2Int(random.Next(1, 7), random.Next(1, 7));
+        }
+
+        private void ApplyZone(Vector2 mouse, Camera cam)
+        {
+            if (_zonesLeft <= 0) return;
+            
+            var ray = cam.ScreenPointToRay(mouse);
+            var mask = LayerMask.GetMask("Table Mesh");
+
+            if (Physics.Raycast(ray, out var result, 100.0F, mask))
+            {
+                var (i, j) = FromWorldToGrid(result.point);
+                i = Math.Clamp(i, _zoneSize.y - 1, rows - 1);
+                j = Math.Clamp(j, _zoneSize.x - 1, cols - 1);
+
+                for (var x = i; x > i - _zoneSize.y; x--)
+                {
+                    for (var y = j; y > j - _zoneSize.x; y--)
+                    {
+                        if (_grid[x, y].state != Room.State.Unreachable) continue;
+                        var variant = _grid[i, j].Random.NextDouble() > VariantChance ? 1 : 0;
+                        
+                        _grid[x, y].state = Room.State.Unvisited;
+                        _tileMaterials[x, y].mainTextureOffset = new Vector2(0.5F, 0.5F * variant);
+                    }
+                }
+            }
+
+            zonePreview.gameObject.SetActive(--_zonesLeft > 0);
+        }
+
+        private void OnMouseMoved(Vector2 mouse, Camera cam)
+        {
+            if (_zonesLeft <= 0) return;
+            
+            zonePreview.gameObject.SetActive(true);
+
+            var ray = cam.ScreenPointToRay(mouse);
+            var mask = LayerMask.GetMask("Table Mesh");
+
+            if (Physics.Raycast(ray, out var result, 100.0F, mask))
+            {
+                var (i, j) = FromWorldToGrid(result.point);
+                i = Math.Clamp(i, _zoneSize.y - 1, rows - 1);
+                j = Math.Clamp(j, _zoneSize.x - 1, cols - 1);
+
+                // Zone Preview
+                var offset = new Vector3(0.25F, 0, -0.25F);
+                var pos = FromGridToWorld(i, j);
+                zonePreview.position = pos + offset;
+                zonePreview.localScale = new Vector3(_zoneSize.x, 1, _zoneSize.y);
+            }
         }
 
         private void SetFigurinePosition(Vector2Int value)
         {
-            figurine.position = FromGridToWorld(value.y, value.x);
+            var (i, j) = (value.y, value.x);
             _figurinePosition = value;
-            _tileRenderers[value.y, value.x].material.mainTexture = visitedTileTexture;
+            
+            // Moving figurine
+            var pos = FromGridToWorld(i, j);
+            figurine.position = pos;
+            
+            var room = _grid[i, j];
+
+            if (room.state != Room.State.Visited)
+            {
+                // Calculating sprite offset
+                var index = 0;
+                Directions.Values.ForEach((direction, k) =>
+                {
+                    if (room.doors[direction] != null) index += 1 << k;
+                });
+
+                var x = (float) (index % 4) / 4;
+                var y = (float) (index / 4) / 4;
+
+                // Setting sprite
+                var tileMaterial = _tileMaterials[i, j];
+                tileMaterial.mainTexture = visitedTileTexture;
+                tileMaterial.mainTextureScale = new Vector2(0.25F, 0.25F);
+                tileMaterial.mainTextureOffset = new Vector2(x, y);
+            
+                // Creating icon if needed
+                if (room.chests.Any(item => item != null))
+                {
+                    var obj = Instantiate(iconPrefab, pos, Quaternion.identity, transform);
+                    var iconRenderer = obj.GetComponentInChildren<Renderer>();
+                    obj.name = $"Chest Icon [{i}, {j}]";
+                    iconRenderer.material.mainTextureOffset = Vector2.right * (4.0F / 6);
+                    _iconRenderers.Add((i, j), iconRenderer);
+                }
+            }
+            
+            room.state = Room.State.Visited;
         }
 
         public void Generate()
         {
-            var generator = new Generator(rows, cols, horizontalChance, verticalChance, new Random());
+            var generator = new Generator(rows, cols, horizontalChance, verticalChance, lootChance, new Random());
             _grid = generator.Generate();
+            _iconRenderers.Values.ForEach(x => Destroy(x.gameObject));
             
             for (var i = 0; i < rows; i++)
             {
                 for (var j = 0; j < cols; j++)
                 {
-                    // Calculating sprite index
-                    var room = _grid[i, j];
-                    var index = 0;
-                    Directions.Values.ForEach((direction, k) =>
-                    {
-                        if (room?.doors[direction] != null) index += 1 << k;
-                    });
-
-                    var x = (index % 4) / 4.0F;
-                    var y = (index / 4) / 4.0F;
-
-                    // Setting sprite
-                    var rdr = _tileRenderers[i, j];
-                    rdr.material = new Material(rdr.material)
-                    {
-                        mainTexture = unvisitedTileTexture,
-                        mainTextureOffset = new Vector2(x, y)
-                    };
+                    var material = _tileMaterials[i, j];
+                    var variant = _grid[i, j].Random.NextDouble() > VariantChance ? 1 : 0;
+                    material.mainTexture = unvisitedTileTexture;
+                    material.mainTextureOffset = new Vector2(0, 0.5F * variant);
+                    material.mainTextureScale = new Vector2(0.5F, 0.5F);
                 }
             }
 
@@ -101,7 +212,14 @@ namespace TableDungeon.Maze
             var z = 0.5F + i - (float) rows / 2;
             return new Vector3(x * cellSize, 0, z * -cellSize);
         }
-
+        
+        private (int i, int j) FromWorldToGrid(Vector3 pos)
+        {
+            var j = (pos.x / cellSize) - 0.5F + (float) cols / 2;
+            var i = (pos.z / -cellSize) - 0.5F + (float) rows / 2;
+            return (Mathf.RoundToInt(i), Mathf.RoundToInt(j));
+        }
+        
         private void OnDrawGizmos()
         {
             for (var i = 0; i < rows; i++)

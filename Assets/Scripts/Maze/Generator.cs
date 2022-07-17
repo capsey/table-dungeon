@@ -11,12 +11,12 @@ namespace TableDungeon.Maze
     public class Generator
     {
         private readonly int _rows, _cols;
-        private readonly float _hChange, _vChance;
+        private readonly float _hChange, _vChance, _lChange;
         private readonly Room[,] _grid;
         private readonly int[] _sets;
         private readonly Random _random;
 
-        public Generator(int rows, int cols, float horizontalChance, float verticalChance, Random random)
+        public Generator(int rows, int cols, float horizontalChance, float verticalChance, float lootChance, Random random)
         {
             Debug.Assert(rows > 0 || cols > 0);
 
@@ -24,6 +24,7 @@ namespace TableDungeon.Maze
             _cols = cols;
             _hChange = horizontalChance;
             _vChance = verticalChance;
+            _lChange = lootChance;
             _grid = new Room[rows, cols];
             _sets = new int[cols];
             _random = random;
@@ -54,7 +55,7 @@ namespace TableDungeon.Maze
                 {
                     if (!usedSets.Add(_sets[j]) && _random.NextDouble() > _vChance) continue;
 
-                    _grid[i + 1, j] = new Room();
+                    _grid[i + 1, j] = new Room(_random.Next());
                     ConnectRooms((i, j), (i + 1, j), Direction.South, _sets[j], -1);
                 }
 
@@ -99,11 +100,20 @@ namespace TableDungeon.Maze
             {
                 if (_grid[row, j] != null) continue;
 
-                var room = new Room();
-                var set = Enumerable.Range(0, int.MaxValue).First(x => !_sets.Contains(x));
-
-                _sets[j] = set;
+                // Creating empty room
+                var room = new Room(_random.Next());
                 _grid[row, j] = room;
+                
+                // Randomly adding chests
+                for (var i = 0; i < room.chests.Length; i++)
+                {
+                    if (_random.NextDouble() > _lChange) continue;
+                    room.chests[i] = new Item(_random);
+                }
+
+                // Assigning brand new set
+                var set = Enumerable.Range(0, int.MaxValue).First(x => !_sets.Contains(x));
+                _sets[j] = set;
             }
         }
     }
