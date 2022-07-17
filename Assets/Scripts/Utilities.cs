@@ -25,9 +25,9 @@ namespace TableDungeon
             foreach (var value in enumerator) predicate.Invoke(value, i++);
         }
 
-        public static double NextRange(this Random random, double min, double max)
+        public static float NextRange(this Random random, float min, float max)
         {
-            return min + random.NextDouble() * (max - min);
+            return (float) (min + random.NextDouble() * (max - min));
         }
     }
 }

@@ -31,9 +31,9 @@ namespace TableDungeon.Dungeon
                 var min = _initialPosition + (Vector3) minDeviation;
                 var max = _initialPosition + (Vector3) maxDeviation;
                 transform.position = new Vector3(
-                    (float) random.NextRange(min.x, max.x),
-                    (float) random.NextRange(min.y, max.y),
-                    (float) random.NextRange(min.z, max.z)
+                    random.NextRange(min.x, max.x),
+                    random.NextRange(min.y, max.y),
+                    random.NextRange(min.z, max.z)
                 );
             }
         }

@@ -281,7 +281,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
             ]
         },
         {
-            ""name"": ""DEBUG"",
+            ""name"": ""Global"",
             ""id"": ""d4fd31ec-e59d-4428-9cb9-0cfedfa2f110"",
             ""actions"": [
                 {
@@ -341,10 +341,10 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Table_RotateZone = m_Table.FindAction("Rotate Zone", throwIfNotFound: true);
         m_Table_Accept = m_Table.FindAction("Accept", throwIfNotFound: true);
         m_Table_RollDice = m_Table.FindAction("RollDice", throwIfNotFound: true);
-        // DEBUG
-        m_DEBUG = asset.FindActionMap("DEBUG", throwIfNotFound: true);
-        m_DEBUG_ToggleView = m_DEBUG.FindAction("ToggleView", throwIfNotFound: true);
-        m_DEBUG_EndMove = m_DEBUG.FindAction("EndMove", throwIfNotFound: true);
+        // Global
+        m_Global = asset.FindActionMap("Global", throwIfNotFound: true);
+        m_Global_ToggleView = m_Global.FindAction("ToggleView", throwIfNotFound: true);
+        m_Global_EndMove = m_Global.FindAction("EndMove", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -499,34 +499,34 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     }
     public TableActions @Table => new TableActions(this);
 
-    // DEBUG
-    private readonly InputActionMap m_DEBUG;
-    private IDEBUGActions m_DEBUGActionsCallbackInterface;
-    private readonly InputAction m_DEBUG_ToggleView;
-    private readonly InputAction m_DEBUG_EndMove;
-    public struct DEBUGActions
+    // Global
+    private readonly InputActionMap m_Global;
+    private IGlobalActions m_GlobalActionsCallbackInterface;
+    private readonly InputAction m_Global_ToggleView;
+    private readonly InputAction m_Global_EndMove;
+    public struct GlobalActions
     {
         private @Controls m_Wrapper;
-        public DEBUGActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @ToggleView => m_Wrapper.m_DEBUG_ToggleView;
-        public InputAction @EndMove => m_Wrapper.m_DEBUG_EndMove;
-        public InputActionMap Get() { return m_Wrapper.m_DEBUG; }
+        public GlobalActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ToggleView => m_Wrapper.m_Global_ToggleView;
+        public InputAction @EndMove => m_Wrapper.m_Global_EndMove;
+        public InputActionMap Get() { return m_Wrapper.m_Global; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
         public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(DEBUGActions set) { return set.Get(); }
-        public void SetCallbacks(IDEBUGActions instance)
+        public static implicit operator InputActionMap(GlobalActions set) { return set.Get(); }
+        public void SetCallbacks(IGlobalActions instance)
         {
-            if (m_Wrapper.m_DEBUGActionsCallbackInterface != null)
+            if (m_Wrapper.m_GlobalActionsCallbackInterface != null)
             {
-                @ToggleView.started -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
-                @ToggleView.performed -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
-                @ToggleView.canceled -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnToggleView;
-                @EndMove.started -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
-                @EndMove.performed -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
-                @EndMove.canceled -= m_Wrapper.m_DEBUGActionsCallbackInterface.OnEndMove;
+                @ToggleView.started -= m_Wrapper.m_GlobalActionsCallbackInterface.OnToggleView;
+                @ToggleView.performed -= m_Wrapper.m_GlobalActionsCallbackInterface.OnToggleView;
+                @ToggleView.canceled -= m_Wrapper.m_GlobalActionsCallbackInterface.OnToggleView;
+                @EndMove.started -= m_Wrapper.m_GlobalActionsCallbackInterface.OnEndMove;
+                @EndMove.performed -= m_Wrapper.m_GlobalActionsCallbackInterface.OnEndMove;
+                @EndMove.canceled -= m_Wrapper.m_GlobalActionsCallbackInterface.OnEndMove;
             }
-            m_Wrapper.m_DEBUGActionsCallbackInterface = instance;
+            m_Wrapper.m_GlobalActionsCallbackInterface = instance;
             if (instance != null)
             {
                 @ToggleView.started += instance.OnToggleView;
@@ -538,7 +538,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
             }
         }
     }
-    public DEBUGActions @DEBUG => new DEBUGActions(this);
+    public GlobalActions @Global => new GlobalActions(this);
     public interface IDungeonActions
     {
         void OnMovement(InputAction.CallbackContext context);
@@ -551,7 +551,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         void OnAccept(InputAction.CallbackContext context);
         void OnRollDice(InputAction.CallbackContext context);
     }
-    public interface IDEBUGActions
+    public interface IGlobalActions
     {
         void OnToggleView(InputAction.CallbackContext context);
         void OnEndMove(InputAction.CallbackContext context);

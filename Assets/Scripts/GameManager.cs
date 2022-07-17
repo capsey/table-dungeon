@@ -17,7 +17,7 @@ namespace TableDungeon
 
         public event Action<GameState, bool, bool> OnStateChanged;
 
-        private float _timer = 0;
+        private float _timer;
 
         private void Awake()
         {
@@ -25,8 +25,8 @@ namespace TableDungeon
             SetGameState(GameState.Table, true);
 
             // Only for debug purposes! Remove ASAP!!
-            Controls.DEBUG.ToggleView.performed += _ => SetGameState((GameState) (((int) State + 1) % 2), Player1);
-            Controls.DEBUG.EndMove.performed += _ =>
+            Controls.Global.ToggleView.performed += _ => SetGameState((GameState) (((int) State + 1) % 2), Player1);
+            Controls.Global.EndMove.performed += _ =>
             {
                 SetGameState(GameState.Table, !Player1);
                 Debug.Log("Move ended!");
@@ -55,6 +55,8 @@ namespace TableDungeon
             Player1 = player1;
 
             Controls.Disable();
+            Controls.Global.Enable();
+            
             tableCamera.enabled = false;
             dungeonCamera.enabled = false;
             
@@ -71,10 +73,7 @@ namespace TableDungeon
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
-            
-            // Only for debug purposes! Remove ASAP!!
-            Controls.DEBUG.Enable();
-            
+
             OnStateChanged?.Invoke(value, player1, changed);
         }
     }

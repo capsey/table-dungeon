@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TableDungeon.Dungeon;
+using TMPro;
 using UnityEngine;
 using Random = System.Random;
 
@@ -19,6 +20,9 @@ namespace TableDungeon.Maze
         public GameObject iconPrefab;
         public Texture2D unvisitedTileTexture;
         public Texture2D visitedTileTexture;
+        [Space]
+        public DiceScript dice1;
+        public DiceScript dice2;
         
         [Header("Generation Settings")]
         [Range(0, 1)] public float horizontalChance = 0.5F;
@@ -27,6 +31,7 @@ namespace TableDungeon.Maze
 
         [Header("UI Settings")]
         public Transform zonePreview;
+        public TextMeshProUGUI dicesLeftText;
         
         [Header("Dungeon Settings")]
         public RoomScript dungeon;
@@ -42,7 +47,8 @@ namespace TableDungeon.Maze
         private Dictionary<(int, int), Renderer> _iconRenderers;
         private GameManager _manager;
 
-        private int _zonesLeft;
+        private int _dicesLeft = 1;
+        private int _zonesLeft = 0;
         private Vector2Int _zoneSize = new Vector2Int(2, 4);
 
         private Dictionary<Item.Type, int> _inventory;
@@ -87,7 +93,7 @@ namespace TableDungeon.Maze
             _manager.OnStateChanged += (s, p, changed) =>
             {
                 if (!changed) return;
-                _zonesLeft++;
+                _dicesLeft++;
                 RedrawBoard();
             };
             _manager.Controls.Table.Mouse.performed += ctx =>
@@ -101,11 +107,18 @@ namespace TableDungeon.Maze
             Generate();
         }
 
+        private void Update()
+        {
+            dicesLeftText.text = $"Dice Rolls Left: {_dicesLeft}";
+        }
+
         private void RollDice()
         {
-            var random = new Random();
-            _zonesLeft += 1;
-            _zoneSize = new Vector2Int(random.Next(1, 7), random.Next(1, 7));
+            if (_dicesLeft <= 0) return;
+            
+            _zoneSize = new Vector2Int(dice1.Next(), dice2.Next());
+            _zonesLeft++;
+            _dicesLeft--;
         }
 
         private void ApplyZone(Vector2 mouse, Camera cam)
@@ -255,7 +268,7 @@ namespace TableDungeon.Maze
             var basePos = _manager.Player1 ? _basePosition1 : _basePosition2;
             var playerPos = _manager.Player1 ? _playerPosition1 : _playerPosition2;
             
-            CreateIcon(basePos.y, basePos.x, 0);
+            CreateIcon(basePos.y, basePos.x, _manager.Player1 ? 0 : 1);
             dungeon.SetRoom(_grid[playerPos.y, playerPos.x]);
             SetFigurinePosition(playerPos);
         }

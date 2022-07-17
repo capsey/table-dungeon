@@ -259,7 +259,7 @@
             ]
         },
         {
-            "name": "DEBUG",
+            "name": "Global",
             "id": "d4fd31ec-e59d-4428-9cb9-0cfedfa2f110",
             "actions": [
                 {
