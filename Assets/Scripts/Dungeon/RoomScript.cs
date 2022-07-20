@@ -16,16 +16,20 @@ namespace TableDungeon.Dungeon
         [Space]
         public PlayerMovement player;
 
+        private Room _room;
+        private GameManager _manager;
+
         public event Action<Direction> OnPlayerMoved;
         public event Action<Item> OnPlayerCollected;
 
         private void Start()
         {
+            _manager = FindObjectOfType<GameManager>();
             var playerCollider = player.GetComponent<Collider2D>();
-            
+
             foreach (var direction in Directions.Values)
             {
-                doors[direction].onPlayerEntered += room => OnPlayerEntered(direction, room);
+                doors[direction].onPlayerEntered += () => OnPlayerEntered(direction);
             }
             
             foreach (var chest in chests)
@@ -47,7 +51,7 @@ namespace TableDungeon.Dungeon
             
             foreach (var direction in Directions.Values)
             {
-                rocks[direction]?.SetActive(value.doors[direction].blocked);
+                rocks[direction].SetActive(value.doors[direction] != null && value.doors[direction].blocked);
                 doors[direction].gameObject.SetActive(value.doors[direction] != null && !value.doors[direction].blocked);
                 doors[direction].Target = value.doors[direction];
             }
@@ -61,20 +65,26 @@ namespace TableDungeon.Dungeon
             {
                 decoration.Randomize(random, 0.25F);
             }
+
+            _room = value;
         }
 
         private IEnumerator BombCoroutine()
         {
-            yield return new WaitForSeconds(5);
+            yield return new WaitForSeconds(1.5F);
             FindObjectOfType<GameManager>().EndMove();
         }
 
-        private void OnPlayerEntered(Direction direction, Room target)
+        private void OnPlayerEntered(Direction direction)
         {
-            SetRoom(target);
-
             var offset = (Vector3) direction.GetVector() * 2;
             player.transform.position = doors[direction.Opposite()].transform.position + offset;
+
+            if (_room.trap?.item == Item.Bomb && _room.trap?.player1 != _manager.Player1)
+            {
+                _room.trap = null;
+                _room.blocked = true;
+            }
             
             OnPlayerMoved?.Invoke(direction);
         }

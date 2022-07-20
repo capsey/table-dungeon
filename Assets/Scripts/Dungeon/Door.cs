@@ -5,7 +5,7 @@ namespace TableDungeon.Dungeon
 {
     public class Door : MonoBehaviour
     {
-        public event Action<Room> onPlayerEntered;
+        public event Action onPlayerEntered;
 
         private GameManager _manager;
         
@@ -21,7 +21,7 @@ namespace TableDungeon.Dungeon
             if (!other.CompareTag("Player")) return;
             if (Target.state1 == Room.State.Unreachable && _manager.Player1) return;
             if (Target.state2 == Room.State.Unreachable && !_manager.Player1) return;
-            onPlayerEntered?.Invoke(Target);
+            onPlayerEntered?.Invoke();
         }
     }
 }

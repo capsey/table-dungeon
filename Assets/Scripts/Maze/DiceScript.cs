@@ -9,7 +9,7 @@ namespace TableDungeon.Maze
     {
         private static readonly Dictionary<int, Quaternion> DiceRotations = new Dictionary<int, Quaternion>
         {
-            { 1, quaternion.Euler(180, 0, 90) },
+            { 1, Quaternion.Euler(180, 0, 90) },
             { 2, Quaternion.Euler(90, 0, 90) },
             { 3, Quaternion.identity },
             { 4, Quaternion.Euler(0, 0, 180) },
@@ -30,13 +30,13 @@ namespace TableDungeon.Maze
         public int Next()
         {
             // Randomly move the dice
-            transform.rotation = Quaternion.Euler(0, _random.NextRange(0, 360), 0);
-            var offset = new Vector3(_random.NextRange(-0.5F, 0.5F), 0, _random.NextRange(-0.1F, 0.1F));
+            transform.localRotation = Quaternion.Euler(0, _random.NextRange(0, 360), 0);
+            var offset = new Vector3(_random.NextRange(-0.25F, 0.25F), 0, _random.NextRange(-0.05F, 0.05F));
             modelTransform.localPosition = offset;
 
             // Calculating result
             var result = _random.Next(1, 6 + 1);
-            modelTransform.rotation = DiceRotations[result];
+            modelTransform.localRotation = DiceRotations[result];
             return result;
         }
     }

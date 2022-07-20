@@ -51,7 +51,7 @@ namespace TableDungeon.Maze
         private Dictionary<(int, int), Renderer> _iconRenderers;
         private GameManager _manager;
 
-        private int _dicesLeft = 1;
+        private int _dicesLeft = 1000;
         private int _zonesLeft = 0;
         private Vector2Int _zoneSize = new Vector2Int(2, 4);
 
@@ -109,7 +109,17 @@ namespace TableDungeon.Maze
             {
                 if (!changed) return;
                 _dicesLeft++;
+                
+                for (var i = 0; i < rows; i++)
+                {
+                    for (var j = 0; j < cols; j++)
+                    {
+                        _grid[i, j].blocked = false;
+                    }
+                }
+                
                 RedrawBoard();
+                RedrawText();
             };
             _manager.Controls.Table.Mouse.performed += ctx =>
                 OnMouseMoved(ctx.ReadValue<Vector2>(), _manager.TableCamera);
@@ -130,6 +140,7 @@ namespace TableDungeon.Maze
             };
             
             Generate();
+            RedrawCards();
         }
 
         private void RedrawText()
@@ -141,22 +152,17 @@ namespace TableDungeon.Maze
 
         private void RedrawCards()
         {
-            bombCard.position = _selectedItem == Item.Bomb ? Vector3.up : Vector3.zero;
-            spellCard.position = _selectedItem == Item.Spell ? Vector3.up : Vector3.zero;
-        }
-
-        private void Update()
-        {
-            dicesLeftText.text = $"Dice Rolls Left: {_dicesLeft}";
+            bombCard.localPosition = _selectedItem == Item.Bomb ? Vector3.up * 0.5F : Vector3.zero;
+            spellCard.localPosition = _selectedItem == Item.Spell ? Vector3.up * 0.5F : Vector3.zero;
         }
 
         private void RollDice()
         {
             if (_dicesLeft <= 0) return;
             
+            dicesLeftText.text = $"Dice Rolls Left: {--_dicesLeft}";
             _zoneSize = new Vector2Int(dice1.Next(), dice2.Next());
             _zonesLeft++;
-            _dicesLeft--;
         }
 
         private void ApplyZone(Vector2 mouse, Camera cam)
@@ -167,11 +173,12 @@ namespace TableDungeon.Maze
             if (Physics.Raycast(ray, out var result, 100.0F, mask))
             {
                 var (i, j) = FromWorldToGrid(result.point);
-                i = Math.Clamp(i, _zoneSize.y - 1, rows - 1);
-                j = Math.Clamp(j, _zoneSize.x - 1, cols - 1);
-                
+
                 if (_zonesLeft > 0)
                 {
+                    i = Math.Clamp(i, _zoneSize.y - 1, rows - 1);
+                    j = Math.Clamp(j, _zoneSize.x - 1, cols - 1);
+                    
                     for (var x = i; x > i - _zoneSize.y; x--)
                     {
                         for (var y = j; y > j - _zoneSize.x; y--)
@@ -189,6 +196,8 @@ namespace TableDungeon.Maze
                 }
                 else if ((_manager.Player1 ? _inventory1 : _inventory2)[_selectedItem] > 0)
                 {
+                    i = Math.Clamp(i, 0, rows - 1);
+                    j = Math.Clamp(j, 0, cols - 1);
                     var room = _grid[i, j];
 
                     if ((room.trap == null || room.trap.player1 != _manager.Player1) && (_manager.Player1 ? room.state1 : room.state2) == Room.State.Visited)
@@ -196,6 +205,7 @@ namespace TableDungeon.Maze
                         room.trap = new Trap(_selectedItem, _manager.Player1);
                         RedrawTile(i, j);
                         (_manager.Player1 ? _inventory1 : _inventory2)[_selectedItem]--;
+                        RedrawText();
                     }
                 }
             }
@@ -228,19 +238,30 @@ namespace TableDungeon.Maze
         {
             if (value == _basePosition2 && _manager.Player1) SceneManager.LoadScene("GameOver1");
             if (value == _basePosition1 && !_manager.Player1) SceneManager.LoadScene("GameOver2");
-            
+
             var (i, j) = (value.y, value.x);
+            var room = _grid[i, j];
+
+            // Spell
+            if (room.trap?.item == Item.Spell && room.trap?.player1 != _manager.Player1)
+            {
+                room.trap = null;
+                RedrawTile(i, j);
+                SetFigurinePosition(_manager.Player1 ? _basePosition1 : _basePosition2);
+                return;
+            }
+            
             if (_manager.Player1) _playerPosition1 = value;
             else _playerPosition2 = value;
             
             // Moving figurine
             var pos = FromGridToWorld(i, j);
             figurine.position = pos;
-            
-            var room = _grid[i, j];
 
             if (_manager.Player1) room.state1 = Room.State.Visited;
             else room.state2 = Room.State.Visited;
+            
+            dungeon.SetRoom(_grid[value.y, value.x]);
             
             RedrawTile(i, j);
         }
@@ -281,8 +302,13 @@ namespace TableDungeon.Maze
 
                     // Creating icon if needed
                     var icon = -1;
+                    var pos = new Vector2Int(j, i);
 
-                    if (room.trap != null && room.trap.player1 == _manager.Player1)
+                    if (pos == (_manager.Player1 ? _basePosition1 : _basePosition2))
+                    {
+                        icon = _manager.Player1 ? 0 : 1;
+                    }
+                    else if (room.trap != null && room.trap.player1 == _manager.Player1)
                     {
                         icon = room.trap.item switch {
                             Item.Bomb => 5,
@@ -290,12 +316,12 @@ namespace TableDungeon.Maze
                             _ => throw new ArgumentOutOfRangeException()
                         };
                     }
-                    else if (room.chests.Any(item => item != null))
+                    else if (room.chests.Any(chest => chest != null && !chest.looted))
                     {
                         icon = 4;
                     }
                     
-                    if (icon < 0) SetIcon(i, j, icon);
+                    if (icon >= 0) SetIcon(i, j, icon);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -331,11 +357,7 @@ namespace TableDungeon.Maze
             }
             
             // Generate base
-            var basePos = _manager.Player1 ? _basePosition1 : _basePosition2;
             var playerPos = _manager.Player1 ? _playerPosition1 : _playerPosition2;
-            
-            SetIcon(basePos.y, basePos.x, _manager.Player1 ? 0 : 1);
-            dungeon.SetRoom(_grid[playerPos.y, playerPos.x]);
             SetFigurinePosition(playerPos);
         }
 
@@ -374,6 +396,20 @@ namespace TableDungeon.Maze
             var j = (pos.x / cellSize) - 0.5F + (float) cols / 2;
             var i = (pos.z / -cellSize) - 0.5F + (float) rows / 2;
             return (Mathf.RoundToInt(i), Mathf.RoundToInt(j));
+        }
+
+        public void OpenEverything()
+        {
+            for (var i = 0; i < rows; i++)
+            {
+                for (var j = 0; j < cols; j++)
+                {
+                    _grid[i, j].state1 = Room.State.Visited;
+                    _grid[i, j].state2 = Room.State.Visited;
+                }
+            }
+            
+            RedrawBoard();
         }
         
         private void OnDrawGizmos()

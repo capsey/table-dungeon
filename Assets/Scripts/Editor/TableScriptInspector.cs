@@ -10,11 +10,18 @@ namespace TableDungeon.Editor
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+            var script = (TableScript) target;
+            
+            GUI.enabled = Application.isPlaying;
             if (GUILayout.Button("Generate new"))
             {
-                var script = (TableScript) target;
                 script.Generate();
             }
+            if (GUILayout.Button("Open whole map"))
+            {
+                script.OpenEverything();
+            }
+            GUI.enabled = true;
         }
     }
 }
