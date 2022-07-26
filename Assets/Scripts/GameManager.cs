@@ -38,6 +38,8 @@ namespace TableDungeon
             Controls.Global.EndMove.performed += _ => EndMove();
         }
 
+        private void OnDestroy() => Controls.Disable();
+
         private void Update()
         {
             _timer += Time.deltaTime * State switch
