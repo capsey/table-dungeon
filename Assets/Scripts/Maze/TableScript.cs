@@ -51,7 +51,7 @@ namespace TableDungeon.Maze
         private Dictionary<(int, int), Renderer> _iconRenderers;
         private GameManager _manager;
 
-        private int _dicesLeft = 1000;
+        private int _dicesLeft = 1;
         private int _zonesLeft = 0;
         private Vector2Int _zoneSize = new Vector2Int(2, 4);
 
@@ -141,11 +141,13 @@ namespace TableDungeon.Maze
             
             Generate();
             RedrawCards();
+            RedrawText();
         }
 
         private void RedrawText()
         {
             var inventory = _manager.Player1 ? _inventory1 : _inventory2;
+            dicesLeftText.text = $"Dice Rolls Left: {_dicesLeft}";
             bombsLeftText.text = $"Bombs Left: {inventory[Item.Bomb]}";
             spellsLeftText.text = $"Spells Left: {inventory[Item.Spell]}";
         }
@@ -160,9 +162,10 @@ namespace TableDungeon.Maze
         {
             if (_dicesLeft <= 0) return;
             
-            dicesLeftText.text = $"Dice Rolls Left: {--_dicesLeft}";
             _zoneSize = new Vector2Int(dice1.Next(), dice2.Next());
             _zonesLeft++;
+            _dicesLeft--;
+            RedrawText();
         }
 
         private void ApplyZone(Vector2 mouse, Camera cam)
